@@ -1,0 +1,66 @@
+<div class="game-container">
+  @if (!gameOver) {
+    <!-- Top bar: timer + progress -->
+    <div class="game-topbar">
+      <div class="timer" [class.timer-urgent]="timeLeft <= 60">⏱ {{ formatTime(timeLeft) }}</div>
+      @if (currentPuzzle) {
+        <div class="progress">CLUE {{ currentPuzzle.orderIndex }} / {{ totalPuzzles }}</div>
+      }
+    </div>
+
+    @if (isTraitor) {
+      <div class="traitor-banner">🕵 You are the traitor. Blend in, mislead the others.</div>
+    }
+
+    @if (lastCorrectBy) {
+      <div class="solved-banner">✓ {{ lastCorrectBy }} cracked the last clue</div>
+    }
+
+    <!-- Puzzle card -->
+    @if (currentPuzzle) {
+      <div class="puzzle-card">
+        <span class="card-eyebrow">EVIDENCE #{{ currentPuzzle.orderIndex }}</span>
+        <p class="narration">{{ currentPuzzle.narration }}</p>
+        <div class="redacted-divider"></div>
+        <p class="question">{{ currentPuzzle.question }}</p>
+
+        <form [formGroup]="answerDto.form" (ngSubmit)="onSubmitAnswer()" class="answer-form">
+          <mat-form-field appearance="outline" class="full-width" [class.shake]="wrongAnswerFlash">
+            <mat-label>Your Answer</mat-label>
+            <input matInput formControlName="answer" autocomplete="off" />
+          </mat-form-field>
+
+          @if (wrongAnswerMessage) {
+            <p class="wrong-answer-text">✕ {{ wrongAnswerMessage }}</p>
+          }
+
+          <button
+            mat-raised-button
+            type="submit"
+            [disabled]="answerDto.form.invalid"
+            class="action-button primary-btn"
+          >
+            Submit Answer
+          </button>
+        </form>
+      </div>
+    } @else {
+      <div class="loading-puzzle">
+        <p>Preparing the case file...</p>
+      </div>
+    }
+  } @else {
+    <!-- Game complete screen -->
+    <div
+      class="game-complete"
+      [class.won]="gameOutcome === 'won'"
+      [class.lost]="gameOutcome === 'lost'"
+    >
+      <h1>{{ gameOutcome === 'won' ? '🏆 Case Closed' : '💀 Case Cold' }}</h1>
+      <p>{{ gameMessage }}</p>
+      <button mat-raised-button class="action-button primary-btn back-btn" (click)="onBackToHome()">
+        Start a New Case
+      </button>
+    </div>
+  }
+</div>

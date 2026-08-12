@@ -1,0 +1,40 @@
+<div class="waiting-container">
+  <div class="case-header">
+    <span class="case-label">CASE FILE // {{ theme | uppercase }}</span>
+    <h1>Room {{ roomCode }}</h1>
+    <button mat-stroked-button class="copy-btn" (click)="copyRoomCode()">
+      <mat-icon>content_copy</mat-icon> Copy Code
+    </button>
+  </div>
+
+  <div class="players-panel">
+    <span class="card-eyebrow">SUSPECTS ASSEMBLED ({{ players.length }})</span>
+    <div class="redacted-divider"></div>
+
+    <ul class="player-list">
+      @for (player of players; track player.id) {
+        <li class="player-item">
+          <span class="player-dot"></span>
+          {{ player.nickname }}
+        </li>
+      }
+    </ul>
+
+    @if (players.length < 2) {
+      <p class="waiting-hint">Waiting for at least one more player to join...</p>
+    }
+  </div>
+
+  <button
+    mat-raised-button
+    class="action-button primary-btn"
+    [disabled]="players.length < 2 || isStarting"
+    (click)="onStartGame()"
+  >
+    {{ isStarting ? 'Assigning Roles...' : 'Start Game' }}
+  </button>
+
+  @if (errorMessage) {
+    <p class="error-message">⚠ {{ errorMessage }}</p>
+  }
+</div>

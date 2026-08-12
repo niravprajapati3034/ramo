@@ -1,0 +1,83 @@
+<div class="home-container">
+  <div class="hero">
+    <span class="stamp">CLASSIFIED</span>
+    <span class="case-label">CASE FILE // ESCAPE PROTOCOL</span>
+    <h1>Ramo</h1>
+    <p class="tagline">Every game is different. One of you is a traitor.</p>
+  </div>
+
+  <div class="forms-wrapper">
+    <!-- Create Room Card -->
+    <div class="case-card">
+      <span class="card-eyebrow">OPEN A NEW CASE</span>
+      <h2>Create a Room</h2>
+      <div class="redacted-divider"></div>
+
+      <form [formGroup]="createRoomDto.form" (ngSubmit)="onCreateRoom()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Your Nickname</mat-label>
+          <input matInput formControlName="nickname" placeholder="e.g. Nirav" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Theme</mat-label>
+          <mat-select formControlName="theme">
+            @for (theme of themes; track theme) {
+              <mat-option [value]="theme">{{ theme | titlecase }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <button
+          mat-raised-button
+          type="submit"
+          [disabled]="createRoomDto.form.invalid || isLoading"
+          class="action-button primary-btn"
+        >
+          Open Case
+        </button>
+      </form>
+    </div>
+
+    <!-- Join Room Card -->
+    <div class="case-card">
+      <span class="card-eyebrow">JOIN EXISTING CASE</span>
+      <h2>Join a Room</h2>
+      <div class="redacted-divider"></div>
+
+      <form [formGroup]="joinRoomDto.form" (ngSubmit)="onJoinRoom()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Your Nickname</mat-label>
+          <input matInput formControlName="nickname" placeholder="e.g. Priya" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Room Code</mat-label>
+          <input
+            matInput
+            formControlName="roomCode"
+            placeholder="e.g. 6ID6JR"
+            style="text-transform: uppercase"
+          />
+        </mat-form-field>
+
+        <button
+          mat-raised-button
+          type="submit"
+          [disabled]="joinRoomDto.form.invalid || isLoading"
+          class="action-button secondary-btn"
+        >
+          Enter Case
+        </button>
+      </form>
+    </div>
+  </div>
+
+  @if (errorMessage) {
+    <p class="error-message">⚠ {{ errorMessage }}</p>
+  }
+
+  @if (isLoading) {
+    <p class="loading-message">Processing request...</p>
+  }
+</div>
