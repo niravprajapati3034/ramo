@@ -1,0 +1,13 @@
+# Backend
+ramo-backend/node_modules/
+ramo-backend/dist/
+ramo-backend/.env
+
+# Frontend
+ramo-frontend/node_modules/
+ramo-frontend/dist/
+ramo-frontend/.angular/
+
+# OS
+.DS_Store
+Thumbs.db
