@@ -26,7 +26,7 @@ export class Game implements OnInit, OnDestroy {
 
   currentPuzzle: PuzzleData | null = null;
   totalPuzzles = 5;
-  timeLeft = 10; // seconds, synced from server
+  timeLeft = 0; // seconds, synced from server
 
   gameOver = false;
   gameOutcome: 'won' | 'lost' | null = null;

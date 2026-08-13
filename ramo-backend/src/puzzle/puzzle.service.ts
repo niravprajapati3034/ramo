@@ -46,54 +46,59 @@ export class PuzzleService {
     theme: string,
     count: number = 5,
   ): Promise<Puzzle[]> {
-    const prompt = `You are a game master creating an escape room puzzle sequence for a "${theme}" themed game.
+    const prompt = `You are creating a fun, EXCITING escape room puzzle sequence for a "${theme}" themed game aimed at school-age students (ages 10-16). The puzzles must be EASY enough to solve in 1-2 minutes, but should still feel clever, surprising, and satisfying to solve - like a genuine "aha!" moment, not a boring worksheet question.
 
-Generate exactly ${count} COMPLETELY DIFFERENT puzzles in a JSON array. Each puzzle MUST use a different puzzle type - mix these categories across the ${count} puzzles:
-- Number sequence or math logic
-- Cipher/code decoding (e.g. letter shift like Caesar cipher, symbol substitution)
-- Logic deduction (e.g. "who did it" clue-based, three suspects one lied)
-- Anagram or hidden word puzzle
-- Spatial/visual pattern (e.g. arranging items, coordinates)
+Generate exactly ${count} puzzles in a JSON array. Use a mix of these puzzle types, keeping them SIMPLE but making the presentation exciting and immersive:
+- Simple word riddle where the answer is a single, common object or animal, described through 2-3 clear, unambiguous clues (e.g. "I have four legs, a long tail, and I bark - what am I?" → dog). AVOID riddles based on letter patterns, wordplay, or "which word fits this rule" - those often have multiple valid answers. The riddle must point to exactly ONE possible answer with no ambiguity.
+- Basic anagram: rearrange 5-8 letters to form a COMMON, everyday word a 10-year-old would instantly recognize (e.g. "table", "apple", "happy", "school", "river", "smile" - NOT rare or unusual words). Make the anagram feel like a "secret code" the character just cracked.
+- Simple Caesar cipher (shift by a small, consistent number like 1, 2, or 3, message under 8 words) - frame it as a spy message, secret note, or villain's code
+- Easy arithmetic riddle (single-step addition/subtraction, small numbers under 50) - frame it as cracking a lock combination, a countdown, or a dramatic ticking clock moment
+- Simple "spot the pattern" with an obvious, single-step pattern - frame it as decoding a hidden signal or ancient clue
 
-BANNED - DO NOT USE these overused riddles or answers under any circumstance:
+HOW TO MAKE IT FEEL EXCITING (very important):
+- Write vivid, dramatic narration that makes the student feel like a detective/hero in the story
+- Use sensory, cinematic details (e.g. "the room goes dark", "a red light blinks", "footsteps echo closer")
+- Make the puzzle feel like a genuine discovery, not a math homework question
+- The DIFFICULTY should stay easy, but the PRESENTATION and STORY should feel thrilling
+
+DIFFICULTY RULE: Every puzzle must be solvable through ONE simple step of reasoning - no combining multiple calculations or logic steps. Simplicity is about how HARD the puzzle is to solve, not how exciting it feels - keep the excitement, keep the ease.
+
+CRITICAL - VERIFY YOUR OWN ANSWER: Solve each puzzle yourself step by step before finalizing it, and confirm the answer is unambiguous and correct - there must be exactly ONE possible correct answer, with no reasonable alternative answers.
+
+CRITICAL - USE ONLY COMMON WORDS: Every word-based answer must be something a 10-year-old uses in everyday conversation.
+
+BANNED - DO NOT USE:
 - Any riddle with the answer "tomorrow"
-- "What has keys but no locks" (piano/keyboard riddle)
-- "What gets wetter as it dries" (towel riddle)
-- Any riddle starting with "What am I" as a generic wordplay riddle
-
-IMPORTANT: Do NOT repeat similar riddles or reuse the same answer/theme twice. Each puzzle must feel distinct and original, tailored specifically to a "${theme}" scenario - not a generic riddle pulled from common trivia.
-
-For math/logic/number puzzles: solve the puzzle yourself step-by-step first, verify your answer is mathematically correct, THEN write the question. Double-check the answer matches the question exactly.
+- Multi-step math word problems
+- Ciphers longer than 8 words
+- Rare, unusual, technical, or archaic words as answers
+- Flat, boring narration (e.g. "Solve this math problem") - always frame it as part of the story
+- Letter-pattern riddles like "my last letter is my first" or "I contain double letters" - these often have multiple correct answers and confuse the answer-checking system
 
 ANSWER FORMAT RULES (very important):
 - Always use lowercase letters and numbers only in the "answer" field
-- NO spaces, NO colons, NO punctuation, NO symbols in the "answer" field
-- For time answers, use 24hr format without colon (e.g. "1530" not "3:30pm")
-- For word answers, use single word or joined words without spaces (e.g. "masterkey" not "master key")
-- For number sequences, just the digits (e.g. "3425" not "3-4-2-5")
+- NO spaces, NO colons, NO punctuation, NO symbols
+- For number answers, just the digits (e.g. "24" not "twenty-four")
+- For word answers, single word, no spaces
 
 Each puzzle must have:
-- "question": the puzzle/riddle text
+- "question": the puzzle text (clear, but framed dramatically within the story)
 - "answer": the correct answer (following the format rules above)
-- "hint": a helpful hint if players are stuck
-- "displayHint": a short instruction telling the player exactly what format to type the answer in (e.g. "Enter as HHMM, like 0930" or "Enter as a single word" or "Enter as digits only, like 3425")
-- "narration": a dramatic 1-2 sentence story text that sets the scene for this puzzle
+- "hint": a helpful, encouraging hint
+- "narration": a vivid, exciting 1-2 sentence story moment for this puzzle, tailored to the "${theme}" theme
 
-Puzzles should get progressively harder. Theme: ${theme}.
+Puzzles should get slightly harder from puzzle 1 to puzzle ${count}, but ALL of them should remain easy enough for a school student.
 
 Respond ONLY with valid JSON array, no markdown, no extra text. Format:
-[{"question": "...", "answer": "...", "hint": "...", "displayHint": "...", "narration": "..."}]`;
+[{"question": "...", "answer": "...", "hint": "...", "narration": "..."}]`;
 
     const completion = await this.groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'user', content: prompt }],
-      temperature: 1.0, // Higher temperature encourages more varied, creative puzzle output
+      temperature: 0.7, // Slightly lower than before - favors reliability/correctness over creativity
     });
 
     const rawResponse = completion.choices[0].message.content;
-
-    // The model occasionally wraps its JSON response in markdown code fences,
-    // so we strip those out before parsing to avoid JSON.parse errors.
     const cleaned = rawResponse.replace(/```json|```/g, '').trim();
     const puzzlesData = JSON.parse(cleaned);
 
@@ -102,8 +107,6 @@ Respond ONLY with valid JSON array, no markdown, no extra text. Format:
       throw new Error('Room not found');
     }
 
-    // Convert the AI's raw puzzle data into Puzzle entities, normalizing each answer
-    // at save time so it matches the same format used later during answer checking.
     const puzzles = puzzlesData.map((p: any, index: number) =>
       this.puzzleRepo.create({
         question: p.question,

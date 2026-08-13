@@ -16,7 +16,7 @@
       <form [formGroup]="createRoomDto.form" (ngSubmit)="onCreateRoom()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Your Nickname</mat-label>
-          <input matInput formControlName="nickname" placeholder="e.g. Nirav" />
+          <input matInput formControlName="nickname" placeholder="Enter your name" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -48,7 +48,7 @@
       <form [formGroup]="joinRoomDto.form" (ngSubmit)="onJoinRoom()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Your Nickname</mat-label>
-          <input matInput formControlName="nickname" placeholder="e.g. Priya" />
+          <input matInput formControlName="nickname" placeholder="Enter your name" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">

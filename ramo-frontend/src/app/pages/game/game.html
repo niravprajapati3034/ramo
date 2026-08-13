@@ -1,12 +1,12 @@
 <div class="game-container">
   @if (!gameOver) {
     <!-- Top bar: timer + progress -->
-    <div class="game-topbar">
-      <div class="timer" [class.timer-urgent]="timeLeft <= 60">⏱ {{ formatTime(timeLeft) }}</div>
-      @if (currentPuzzle) {
+    @if (currentPuzzle) {
+      <div class="game-topbar">
+        <div class="timer" [class.timer-urgent]="timeLeft <= 60">⏱ {{ formatTime(timeLeft) }}</div>
         <div class="progress">CLUE {{ currentPuzzle.orderIndex }} / {{ totalPuzzles }}</div>
-      }
-    </div>
+      </div>
+    }
 
     @if (isTraitor) {
       <div class="traitor-banner">🕵 You are the traitor. Blend in, mislead the others.</div>
