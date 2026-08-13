@@ -38,6 +38,9 @@ export class Game implements OnInit, OnDestroy {
 
   answerDto: AnswerFormDto;
 
+  // Reference to the local countdown interval, so it can be cleared and restarted cleanly
+  private countdownInterval: any;
+
   constructor(
     private route: ActivatedRoute,
     private socketService: SocketService,
@@ -56,11 +59,15 @@ export class Game implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
+
     // Clean up all listeners registered by this component to avoid duplicate
     // handlers if the Game page is revisited later in the same session.
     this.socketService.off('traitorAssigned');
     this.socketService.off('newPuzzle');
-    this.socketService.off('timerUpdate');
+    this.socketService.off('timerStarted');
     this.socketService.off('answerCorrect');
     this.socketService.off('answerWrong');
     this.socketService.off('gameComplete');
@@ -108,11 +115,25 @@ export class Game implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
-    this.socketService.on('timerUpdate', (data: { timeLeft: number }) => {
-      // The countdown is calculated server-side and broadcast every second,
-      // so all players always see the exact same time remaining.
-      this.timeLeft = data.timeLeft;
-      this.cdr.detectChanges();
+    // The server sends a single fixed end timestamp instead of a per-second countdown.
+    // Each client calculates its own remaining time locally every second based on
+    // (endTime - now), which stays smooth and accurate regardless of network latency -
+    // a player far from the server will never see the timer jump backward, since the
+    // calculation never depends on receiving a message at exactly the right moment.
+    this.socketService.on('timerStarted', (data: { endTime: number }) => {
+      if (this.countdownInterval) {
+        clearInterval(this.countdownInterval);
+      }
+
+      this.countdownInterval = setInterval(() => {
+        const secondsLeft = Math.max(0, Math.round((data.endTime - Date.now()) / 1000));
+        this.timeLeft = secondsLeft;
+        this.cdr.detectChanges();
+
+        if (secondsLeft <= 0) {
+          clearInterval(this.countdownInterval);
+        }
+      }, 1000);
     });
 
     this.socketService.on('answerCorrect', (data: { nickname: string }) => {
@@ -137,6 +158,9 @@ export class Game implements OnInit, OnDestroy {
 
     this.socketService.on('gameComplete', (data: { outcome: 'won' | 'lost'; message: string }) => {
       // Switches the view from the active puzzle screen to the win/loss summary screen
+      if (this.countdownInterval) {
+        clearInterval(this.countdownInterval);
+      }
       this.gameOver = true;
       this.gameOutcome = data.outcome;
       this.gameMessage = data.message;
