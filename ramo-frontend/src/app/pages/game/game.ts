@@ -41,6 +41,23 @@ export class Game implements OnInit, OnDestroy {
   // Reference to the local countdown interval, so it can be cleared and restarted cleanly
   private countdownInterval: any;
 
+  loadingMessages = [
+    'Bribing the security guard...',
+    'Picking the lock (with a hairpin)...',
+    'Consulting the getaway driver...',
+    'Sneaking past the cameras...',
+    'Cracking the vault combination...',
+  ];
+  currentLoadingMessage = this.loadingMessages[0];
+  private loadingMessageInterval: any;
+  showCelebration = false;
+  displayedNarration = ''; // The portion of narration currently shown (typed out so far)
+  private typewriterInterval: any;
+  solvedCount = 0; // How many puzzles solved so far in this game
+  streakMessage = '';
+  private streakMessageTimeout: any;
+  traitorNickname: string | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private socketService: SocketService,
@@ -55,12 +72,31 @@ export class Game implements OnInit, OnDestroy {
 
     this.answerDto = new AnswerFormDto(this.fb).get({ answer: '' });
 
+    // Rotate a fun loading message every 2 seconds while waiting for the first puzzle
+    let msgIndex = 0;
+    this.loadingMessageInterval = setInterval(() => {
+      msgIndex = (msgIndex + 1) % this.loadingMessages.length;
+      this.currentLoadingMessage = this.loadingMessages[msgIndex];
+      this.cdr.detectChanges();
+    }, 2000);
+
     this.registerSocketListeners();
   }
 
   ngOnDestroy(): void {
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
+    }
+    if (this.loadingMessageInterval) {
+      clearInterval(this.loadingMessageInterval);
+    }
+
+    if (this.typewriterInterval) {
+      clearInterval(this.typewriterInterval);
+    }
+
+    if (this.streakMessageTimeout) {
+      clearTimeout(this.streakMessageTimeout);
     }
 
     // Clean up all listeners registered by this component to avoid duplicate
@@ -104,14 +140,35 @@ export class Game implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
+    // this.socketService.on('newPuzzle', (data: PuzzleData) => {
+    //   // Stop rotating the loading message now that a puzzle has actually arrived
+    //   if (this.loadingMessageInterval) {
+    //     clearInterval(this.loadingMessageInterval);
+    //   }
+    //   this.currentPuzzle = data;
+    //   if (data.totalPuzzles) {
+    //     this.totalPuzzles = data.totalPuzzles;
+    //   }
+    //   this.answerDto = new AnswerFormDto(this.fb).get({ answer: '' });
+    //   this.wrongAnswerMessage = '';
+    //   this.cdr.detectChanges();
+    // });
+
     this.socketService.on('newPuzzle', (data: PuzzleData) => {
+      if (this.loadingMessageInterval) {
+        clearInterval(this.loadingMessageInterval);
+      }
       this.currentPuzzle = data;
       if (data.totalPuzzles) {
         this.totalPuzzles = data.totalPuzzles;
       }
-      // Reset the answer form so the previous puzzle's input doesn't carry over
       this.answerDto = new AnswerFormDto(this.fb).get({ answer: '' });
       this.wrongAnswerMessage = '';
+
+      // Reveal the narration text one character at a time for a dramatic,
+      // movie-subtitle-style effect instead of showing the full paragraph instantly.
+      this.startTypewriter(data.narration);
+
       this.cdr.detectChanges();
     });
 
@@ -139,6 +196,28 @@ export class Game implements OnInit, OnDestroy {
     this.socketService.on('answerCorrect', (data: { nickname: string }) => {
       this.lastCorrectBy = data.nickname;
       this.wrongAnswerMessage = '';
+      this.playSound('correct');
+
+      // Track how many puzzles have been solved so far and show a short,
+      // escalating motivational message to build momentum and excitement.
+      this.solvedCount++;
+      this.streakMessage = this.getStreakMessage(this.solvedCount);
+
+      if (this.streakMessageTimeout) {
+        clearTimeout(this.streakMessageTimeout);
+      }
+      this.streakMessageTimeout = setTimeout(() => {
+        this.streakMessage = '';
+        this.cdr.detectChanges();
+      }, 2000);
+
+      this.showCelebration = true;
+      this.cdr.detectChanges();
+      setTimeout(() => {
+        this.showCelebration = false;
+        this.cdr.detectChanges();
+      }, 1500);
+
       this.cdr.detectChanges();
     });
 
@@ -147,6 +226,7 @@ export class Game implements OnInit, OnDestroy {
       // then automatically clear it after 2 seconds.
       this.wrongAnswerMessage = 'Wrong answer, try again!';
       this.wrongAnswerFlash = true;
+      this.playSound('wrong');
       this.cdr.detectChanges();
 
       setTimeout(() => {
@@ -156,16 +236,20 @@ export class Game implements OnInit, OnDestroy {
       }, 2000);
     });
 
-    this.socketService.on('gameComplete', (data: { outcome: 'won' | 'lost'; message: string }) => {
-      // Switches the view from the active puzzle screen to the win/loss summary screen
-      if (this.countdownInterval) {
-        clearInterval(this.countdownInterval);
-      }
-      this.gameOver = true;
-      this.gameOutcome = data.outcome;
-      this.gameMessage = data.message;
-      this.cdr.detectChanges();
-    });
+    this.socketService.on(
+      'gameComplete',
+      (data: { outcome: 'won' | 'lost'; message: string; traitorNickname?: string }) => {
+        // Switches the view from the active puzzle screen to the win/loss summary screen
+        if (this.countdownInterval) {
+          clearInterval(this.countdownInterval);
+        }
+        this.gameOver = true;
+        this.gameOutcome = data.outcome;
+        this.gameMessage = data.message;
+        this.traitorNickname = data.traitorNickname || null;
+        this.cdr.detectChanges();
+      },
+    );
 
     this.socketService.on('playerDisconnected', (data: { nickname: string }) => {
       // Logged for now; could be surfaced as an in-game toast/banner in a future iteration
@@ -202,5 +286,73 @@ export class Game implements OnInit, OnDestroy {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  private startTypewriter(fullText: string): void {
+    if (this.typewriterInterval) {
+      clearInterval(this.typewriterInterval);
+    }
+
+    this.displayedNarration = '';
+    let charIndex = 0;
+
+    this.typewriterInterval = setInterval(() => {
+      if (charIndex < fullText.length) {
+        this.displayedNarration += fullText[charIndex];
+        charIndex++;
+        this.cdr.detectChanges();
+      } else {
+        clearInterval(this.typewriterInterval);
+      }
+    }, 25); // ~25ms per character - fast enough to not feel slow, slow enough to feel dramatic
+  }
+
+  /**
+   * Plays a short, simple beep sound using the Web Audio API - no external sound
+   * files needed. Used to give quick audio feedback on correct/wrong answers,
+   * which adds a satisfying "arcade game" feel without any asset loading.
+   */
+  private playSound(type: 'correct' | 'wrong'): void {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      if (type === 'correct') {
+        // A quick upward "ding" - two ascending notes
+        oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+        oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.1); // G5
+      } else {
+        // A short low "buzz"
+        oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+      }
+
+      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (e) {
+      // Silently ignore - audio isn't critical to gameplay, some browsers may block autoplay
+    }
+  }
+
+  /**
+   * Returns a short, escalating motivational message based on how many puzzles
+   * have been solved so far, to build a sense of momentum and excitement as
+   * the team progresses through the game.
+   */
+  private getStreakMessage(count: number): string {
+    const messages: Record<number, string> = {
+      1: 'First clue cracked! 🔍',
+      2: '2 in a row - on fire! 🔥',
+      3: "3 down - you're on a roll! 🚀",
+      4: '4 clues cracked - almost there! ⚡',
+      5: 'Final clue smashed! 🏆',
+    };
+    return messages[count] || `${count} clues solved! 🎉`;
   }
 }

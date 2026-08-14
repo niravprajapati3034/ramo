@@ -1,4 +1,11 @@
 <div class="game-container">
+  @if (showCelebration) {
+    <div class="celebration-overlay">
+      <span class="celebration-emoji">🎉</span>
+      <span class="celebration-emoji">✨</span>
+      <span class="celebration-emoji">🎊</span>
+    </div>
+  }
   @if (!gameOver) {
     <!-- Top bar: timer + progress -->
     @if (currentPuzzle) {
@@ -16,11 +23,15 @@
       <div class="solved-banner">✓ {{ lastCorrectBy }} cracked the last clue</div>
     }
 
+    @if (streakMessage) {
+      <div class="streak-banner">{{ streakMessage }}</div>
+    }
+
     <!-- Puzzle card -->
     @if (currentPuzzle) {
       <div class="puzzle-card">
         <span class="card-eyebrow">EVIDENCE #{{ currentPuzzle.orderIndex }}</span>
-        <p class="narration">{{ currentPuzzle.narration }}</p>
+        <p class="narration">{{ displayedNarration }}</p>
         <div class="redacted-divider"></div>
         <p class="question">{{ currentPuzzle.question }}</p>
 
@@ -46,7 +57,7 @@
       </div>
     } @else {
       <div class="loading-puzzle">
-        <p>Preparing the case file...</p>
+        <p>{{ currentLoadingMessage }}</p>
       </div>
     }
   } @else {
@@ -58,6 +69,11 @@
     >
       <h1>{{ gameOutcome === 'won' ? '🏆 Case Closed' : '💀 Case Cold' }}</h1>
       <p>{{ gameMessage }}</p>
+      @if (traitorNickname) {
+        <p class="traitor-reveal">
+          🕵️ The traitor was: <strong>{{ traitorNickname }}</strong>
+        </p>
+      }
       <button mat-raised-button class="action-button primary-btn back-btn" (click)="onBackToHome()">
         Start a New Case
       </button>

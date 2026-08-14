@@ -156,11 +156,6 @@ export class WaitingRoom implements OnInit, OnDestroy {
    * on the backend as the source of truth).
    */
   onStartGame(): void {
-    if (this.players.length < 2) {
-      this.errorMessage = 'Need at least 2 players to start the game.';
-      return;
-    }
-
     this.isStarting = true;
     this.errorMessage = '';
 

@@ -21,14 +21,14 @@
     </ul>
 
     @if (players.length < 2) {
-      <p class="waiting-hint">Waiting for at least one more player to join...</p>
+      <p class="waiting-hint">Playing solo - invite a friend to unlock the traitor twist!</p>
     }
   </div>
 
   <button
     mat-raised-button
     class="action-button primary-btn"
-    [disabled]="players.length < 2 || isStarting"
+    [disabled]="isStarting"
     (click)="onStartGame()"
   >
     {{ isStarting ? 'Assigning Roles...' : 'Start Game' }}

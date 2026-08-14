@@ -88,8 +88,8 @@ export class RoomService {
       throw new Error('Room not found');
     }
 
-    if (room.players.length < 2) {
-      throw new Error('Need at least 2 players to start');
+    if (room.players.length < 1) {
+      throw new Error('Need at least 1 player to start');
     }
 
     // Pick one random player from the room to become the traitor
@@ -125,5 +125,22 @@ export class RoomService {
       status: 'finished',
       finishedAt: new Date(),
     });
+  }
+
+  /**
+   * Fetches the nickname of the player currently marked as the traitor in a room.
+   * Used at game-end to reveal who the traitor was, giving the traitor mechanic
+   * a meaningful payoff instead of the role going unused for the whole game.
+   */
+  async getTraitorNickname(roomId: string): Promise<string | null> {
+    const room = await this.roomRepo.findOne({
+      where: { id: roomId },
+      relations: ['players'],
+    });
+
+    if (!room) return null;
+
+    const traitor = room.players.find((p) => p.isTraitor);
+    return traitor ? traitor.nickname : null;
   }
 }

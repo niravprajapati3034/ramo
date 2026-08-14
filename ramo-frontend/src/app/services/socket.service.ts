@@ -14,10 +14,15 @@ export class SocketService {
   private readonly SERVER_URL = environment.apiUrl;
 
   constructor() {
-    this.socket = io(this.SERVER_URL);
+    // Force WebSocket transport directly instead of the default polling->websocket
+    // upgrade flow. Some mobile browsers (notably iOS Safari) can get stuck during
+    // that upgrade handshake, especially over cellular networks or behind certain
+    // hosting proxies - this was causing the "Assigning Roles..." screen to hang
+    // indefinitely on iPhone while working fine on Android.
+    this.socket = io(this.SERVER_URL, {
+      transports: ['websocket'],
+    });
 
-    // Debug logs to make connection issues visible in the browser console during development.
-    // Useful for quickly telling apart "socket never connected" vs "event never reached the server".
     this.socket.on('connect', () => {
       console.log('✅ Socket connected:', this.socket.id);
     });

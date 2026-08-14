@@ -122,9 +122,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         message: 'The game has begun! One among you is a traitor...',
       });
 
-      this.server.to(data.roomCode).emit('traitorAssigned', {
-        traitorPlayerId: traitor.id,
-      });
+      // Only reveal the traitor assignment if there's more than 1 player in the
+      // room - with a solo player, the "traitor" role has no one to hide from,
+      // so revealing it would be meaningless (and confusing) in the UI.
+      const room = await this.roomService.getRoomByCode(data.roomCode);
+      if (room.players.length >= 2) {
+        this.server.to(data.roomCode).emit('traitorAssigned', {
+          traitorPlayerId: traitor.id,
+        });
+      }
 
       const firstPuzzle = puzzles[0];
       this.server.to(data.roomCode).emit('newPuzzle', {
@@ -172,7 +178,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
           orderIndex: result.nextPuzzle.orderIndex,
         });
       } else {
-        await this.endGame(data.roomCode, 'won');
+        // Give players a moment to see the celebration/streak message for the final
+        // puzzle before switching to the "Case Closed" screen.
+        setTimeout(async () => {
+          await this.endGame(data.roomCode, 'won');
+        }, 1800);
       }
     } else {
       client.emit('answerWrong', { message: 'Wrong answer, try again!' });
@@ -220,12 +230,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const room = await this.roomService.getRoomByCode(roomCode);
     await this.roomService.markGameFinished(room.id);
 
+    // Only reveal the traitor if there was more than 1 player - with a solo
+    // player, the "traitor" role was never meaningfully hidden from anyone.
+    const traitorNickname =
+      room.players.length >= 2
+        ? await this.roomService.getTraitorNickname(room.id)
+        : null;
+
     this.server.to(roomCode).emit('gameComplete', {
       outcome,
       message:
         outcome === 'won'
           ? 'Congratulations! You escaped in time!'
           : "Time's up! You didn't escape in time.",
+      traitorNickname,
     });
   }
 

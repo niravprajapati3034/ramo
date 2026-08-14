@@ -50,8 +50,8 @@ export class PuzzleService {
 
 Generate exactly ${count} puzzles in a JSON array. Use a mix of these puzzle types, keeping them SIMPLE but making the presentation exciting and immersive:
 - Simple word riddle where the answer is a single, common object or animal, described through 2-3 clear, unambiguous clues (e.g. "I have four legs, a long tail, and I bark - what am I?" → dog). AVOID riddles based on letter patterns, wordplay, or "which word fits this rule" - those often have multiple valid answers. The riddle must point to exactly ONE possible answer with no ambiguity.
-- Basic anagram: rearrange 5-8 letters to form a COMMON, everyday word a 10-year-old would instantly recognize (e.g. "table", "apple", "happy", "school", "river", "smile" - NOT rare or unusual words). Make the anagram feel like a "secret code" the character just cracked.
-- Simple Caesar cipher (shift by a small, consistent number like 1, 2, or 3, message under 8 words) - frame it as a spy message, secret note, or villain's code
+- Basic anagram: rearrange EXACTLY 5-6 letters (never fewer than 5, never more than 6) to form a COMMON, everyday word a 10-year-old would say in daily conversation (e.g. "table", "apple", "happy", "smile", "beach", "candy", "pizza", "mouse", "chair" - NOT rare, technical, or unusual words like "alto", "iota", "oral", "spat"). Before finalizing, ask: could a 10-year-old say this word out loud casually? If not, pick a different, more common word. Make the anagram feel like a "secret code" the character just cracked.
+- Simple Caesar cipher (shift by a small, consistent number like 1, 2, or 3, message under 8 words) - frame it as a spy message, secret note, or villain's code. Do NOT reuse the classic "khoor zruog" example (which is "hello world" shifted by 3) - it is overused. Pick a different short, fun message. CRITICAL: after choosing your shift number and encoding a message, manually re-decode your own encoded message letter-by-letter using that exact shift number to confirm it produces the correct plain-text message before writing it in the puzzle. The shift number you state in the question text MUST match the shift number you actually used to encode it.
 - Easy arithmetic riddle (single-step addition/subtraction, small numbers under 50) - frame it as cracking a lock combination, a countdown, or a dramatic ticking clock moment
 - Simple "spot the pattern" with an obvious, single-step pattern - frame it as decoding a hidden signal or ancient clue
 
@@ -60,6 +60,12 @@ HOW TO MAKE IT FEEL EXCITING (very important):
 - Use sensory, cinematic details (e.g. "the room goes dark", "a red light blinks", "footsteps echo closer")
 - Make the puzzle feel like a genuine discovery, not a math homework question
 - The DIFFICULTY should stay easy, but the PRESENTATION and STORY should feel thrilling
+
+HUMOR AND FUN (very important):
+- Sprinkle in light humor and playful, silly details wherever it fits naturally - funny character names, silly sound effects in the narration, a joke the "villain" makes, or a comically over-the-top dramatic moment
+- Think of the tone like a fun kids' adventure movie or a silly heist comedy, NOT a serious thriller
+- It's okay to be a little goofy - e.g. a security guard who's obsessed with snacks, a villain who monologues too much, a lock that "burps" when it opens
+- The goal is that a student playing this for fun should smile or laugh at least once per puzzle, not just solve it
 
 DIFFICULTY RULE: Every puzzle must be solvable through ONE simple step of reasoning - no combining multiple calculations or logic steps. Simplicity is about how HARD the puzzle is to solve, not how exciting it feels - keep the excitement, keep the ease.
 
@@ -82,10 +88,10 @@ ANSWER FORMAT RULES (very important):
 - For word answers, single word, no spaces
 
 Each puzzle must have:
-- "question": the puzzle text (clear, but framed dramatically within the story)
+- "question": the puzzle text (clear, but framed dramatically and with a touch of humor within the story)
 - "answer": the correct answer (following the format rules above)
-- "hint": a helpful, encouraging hint
-- "narration": a vivid, exciting 1-2 sentence story moment for this puzzle, tailored to the "${theme}" theme
+- "hint": a helpful, encouraging, and slightly funny hint
+- "narration": a vivid, exciting, and playful 1-2 sentence story moment for this puzzle, tailored to the "${theme}" theme
 
 Puzzles should get slightly harder from puzzle 1 to puzzle ${count}, but ALL of them should remain easy enough for a school student.
 
