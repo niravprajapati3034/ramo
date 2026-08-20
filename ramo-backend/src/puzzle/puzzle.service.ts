@@ -104,6 +104,7 @@ Generate exactly ${count} puzzles in a JSON array. Use a mix of these puzzle typ
 - Clever word riddle where the answer is a common object, animal, or place, described through 2-4 clues that require a bit of connecting-the-dots (e.g. "I have hands but no arms, I have a face but no eyes, and I tell you when to leave for school - what am I?" → clock)
 - Two-step arithmetic (e.g. "double 6, then add 5" - numbers under 100, at most 2 simple operations)
 - Basic anagram: rearrange EXACTLY 5-7 letters to form a COMMON, everyday word a 12-year-old would recognize instantly (e.g. "table", "school", "planet", "garden", "pencil" - NOT rare or unusual words)
+-CRITICAL FOR ANAGRAMS: After picking your answer word, write out its exact letters, then scramble ONLY those exact letters (same letters, different order) to create the puzzle. Do NOT substitute or change any letter. Before finalizing, verify that the scrambled letters you show the player are EXACTLY the same letters (same count of each letter) as your answer word - no more, no less, no different letters.
 - Simple logic riddle with 2-3 short clues about people/objects (e.g. "there are 3 boxes, only one has treasure, the middle box is empty, the treasure is not on the left - which box has it?")
 - "Spot the pattern" with a slightly less obvious rule (e.g. skip-counting, or a simple multiply-then-add sequence)
 

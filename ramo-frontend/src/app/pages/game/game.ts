@@ -82,6 +82,21 @@ export class Game implements OnInit, OnDestroy {
     }, 2000);
 
     this.registerSocketListeners();
+
+    // Proactively request the current room state as soon as this page loads,
+    // instead of relying only on the socket's 'connect' event. If the socket
+    // was already connected before navigating here (e.g. Angular SPA navigation
+    // without a full page reload), 'connect' never fires again, so without this
+    // explicit call, a dropped/missed 'gameStarted' broadcast (which can happen
+    // intermittently on iOS Safari) would leave this screen stuck forever until
+    // a manual refresh forces a fresh socket connection.
+    const roomId = sessionStorage.getItem('roomId') || '';
+    if (this.roomCode && roomId) {
+      this.socketService.emit('resyncRoom', {
+        roomCode: this.roomCode,
+        roomId,
+      });
+    }
   }
 
   ngOnDestroy(): void {
