@@ -99,7 +99,7 @@ Respond ONLY with valid JSON array, no markdown, no extra text. Format:
 [{"question": "...", "answer": "...", "hint": "...", "narration": "..."}]`;
 
     const completion = await this.groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7, // Slightly lower than before - favors reliability/correctness over creativity
     });
@@ -173,6 +173,20 @@ Respond ONLY with valid JSON array, no markdown, no extra text. Format:
       throw new Error('Puzzle not found');
     }
 
+    // Guard against duplicate submissions racing in (e.g. from rapid double-clicks
+    // or network retries) - if this puzzle was already solved by an earlier request
+    // a moment ago, don't process it again and don't advance the sequence a second
+    // time. Without this, rapid clicks could skip multiple puzzles in one go.
+    if (puzzle.solved) {
+      const nextPuzzle = await this.puzzleRepo.findOne({
+        where: {
+          room: { id: puzzle.room.id },
+          orderIndex: puzzle.orderIndex + 1,
+        },
+      });
+      return { correct: true, nextPuzzle: nextPuzzle || null };
+    }
+
     const normalizedSubmitted = this.normalize(submittedAnswer);
     const normalizedStored = this.normalize(puzzle.answer);
 
@@ -182,7 +196,6 @@ Respond ONLY with valid JSON array, no markdown, no extra text. Format:
       puzzle.solved = true;
       await this.puzzleRepo.save(puzzle);
 
-      // Look up the next puzzle in this room's sequence, if one exists
       const nextPuzzle = await this.puzzleRepo.findOne({
         where: {
           room: { id: puzzle.room.id },

@@ -37,6 +37,7 @@ export class Game implements OnInit, OnDestroy {
   lastCorrectBy = '';
 
   answerDto: AnswerFormDto;
+  isSubmitting = false;
 
   // Reference to the local countdown interval, so it can be cleared and restarted cleanly
   private countdownInterval: any;
@@ -140,21 +141,8 @@ export class Game implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
-    // this.socketService.on('newPuzzle', (data: PuzzleData) => {
-    //   // Stop rotating the loading message now that a puzzle has actually arrived
-    //   if (this.loadingMessageInterval) {
-    //     clearInterval(this.loadingMessageInterval);
-    //   }
-    //   this.currentPuzzle = data;
-    //   if (data.totalPuzzles) {
-    //     this.totalPuzzles = data.totalPuzzles;
-    //   }
-    //   this.answerDto = new AnswerFormDto(this.fb).get({ answer: '' });
-    //   this.wrongAnswerMessage = '';
-    //   this.cdr.detectChanges();
-    // });
-
     this.socketService.on('newPuzzle', (data: PuzzleData) => {
+      this.isSubmitting = false;
       if (this.loadingMessageInterval) {
         clearInterval(this.loadingMessageInterval);
       }
@@ -194,6 +182,7 @@ export class Game implements OnInit, OnDestroy {
     });
 
     this.socketService.on('answerCorrect', (data: { nickname: string }) => {
+      this.isSubmitting = false;
       this.lastCorrectBy = data.nickname;
       this.wrongAnswerMessage = '';
       this.playSound('correct');
@@ -222,6 +211,7 @@ export class Game implements OnInit, OnDestroy {
     });
 
     this.socketService.on('answerWrong', () => {
+      this.isSubmitting = false;
       // Show a brief error message and shake animation on the input,
       // then automatically clear it after 2 seconds.
       this.wrongAnswerMessage = 'Wrong answer, try again!';
@@ -263,7 +253,7 @@ export class Game implements OnInit, OnDestroy {
    * to the room - this method doesn't know or decide whether the answer is correct.
    */
   onSubmitAnswer(): void {
-    if (this.answerDto.form.invalid || !this.currentPuzzle) return;
+    if (this.answerDto.form.invalid || !this.currentPuzzle || this.isSubmitting) return;
 
     this.socketService.emit('submitAnswer', {
       roomCode: this.roomCode,

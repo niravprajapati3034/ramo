@@ -48,10 +48,10 @@
           <button
             mat-raised-button
             type="submit"
-            [disabled]="answerDto.form.invalid"
+            [disabled]="answerDto.form.invalid || isSubmitting"
             class="action-button primary-btn"
           >
-            Submit Answer
+            {{ isSubmitting ? 'Submitting...' : 'Submit Answer' }}
           </button>
         </form>
       </div>
