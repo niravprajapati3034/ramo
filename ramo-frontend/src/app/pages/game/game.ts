@@ -181,20 +181,32 @@ export class Game implements OnInit, OnDestroy {
     // a player far from the server will never see the timer jump backward, since the
     // calculation never depends on receiving a message at exactly the right moment.
     this.socketService.on('timerStarted', (data: { endTime: number }) => {
-      if (this.countdownInterval) {
-        clearInterval(this.countdownInterval);
-      }
+  if (this.countdownInterval) {
+    clearInterval(this.countdownInterval);
+  }
 
-      this.countdownInterval = setInterval(() => {
-        const secondsLeft = Math.max(0, Math.round((data.endTime - Date.now()) / 1000));
-        this.timeLeft = secondsLeft;
-        this.cdr.detectChanges();
+  this.countdownInterval = setInterval(() => {
+    const secondsLeft = Math.max(0, Math.round((data.endTime - Date.now()) / 1000));
+    this.timeLeft = secondsLeft;
+    this.cdr.detectChanges();
 
-        if (secondsLeft <= 0) {
-          clearInterval(this.countdownInterval);
+    if (secondsLeft <= 0) {
+      clearInterval(this.countdownInterval);
+
+      // If the server's own end-of-game timeout was somehow lost (e.g. a
+      // server restart during development, or a rare missed broadcast),
+      // this client-side check forces a resync a couple seconds after the
+      // countdown visually hits zero, so the screen never stays frozen
+      // waiting for a 'gameComplete' event that may never arrive.
+      setTimeout(() => {
+        if (!this.gameOver) {
+          const roomId = sessionStorage.getItem('roomId') || '';
+          this.socketService.emit('resyncRoom', { roomCode: this.roomCode, roomId });
         }
-      }, 1000);
-    });
+      }, 2000);
+    }
+  }, 1000);
+});
 
     this.socketService.on('answerCorrect', (data: { nickname: string }) => {
       this.isSubmitting = false;

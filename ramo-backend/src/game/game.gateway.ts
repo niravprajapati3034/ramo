@@ -268,9 +268,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
+    const endTime = roomEndTimes.get(data.roomCode);
+
+    // Self-healing check: if the room's timer already expired but the game
+    // was never marked finished (e.g. the server's scheduled setTimeout was
+    // lost due to a server restart), end it now instead of leaving the client
+    // stuck waiting for a 'gameComplete' event that will never arrive.
+    if (endTime && Date.now() >= endTime) {
+      await this.endGame(data.roomCode, 'lost');
+      return;
+    }
+
     // Resend the fixed end timestamp so a reconnecting client's local countdown
     // stays in sync with everyone else's, instead of restarting from scratch.
-    const endTime = roomEndTimes.get(data.roomCode);
     if (endTime) {
       client.emit('timerStarted', { endTime });
     }
