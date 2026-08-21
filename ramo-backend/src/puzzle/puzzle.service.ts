@@ -104,18 +104,20 @@ Generate exactly ${count} puzzles in a JSON array. Use a mix of these puzzle typ
 - Clever word riddle where the answer is a common object, animal, or place, described through 2-4 clues that require a bit of connecting-the-dots (e.g. "I have hands but no arms, I have a face but no eyes, and I tell you when to leave for school - what am I?" → clock)
 - Two-step arithmetic (e.g. "double 6, then add 5" - numbers under 100, at most 2 simple operations)
 - Basic anagram: rearrange EXACTLY 5-7 letters to form a COMMON, everyday word a 12-year-old would recognize instantly (e.g. "table", "school", "planet", "garden", "pencil" - NOT rare or unusual words)
--CRITICAL FOR ANAGRAMS: After picking your answer word, write out its exact letters, then scramble ONLY those exact letters (same letters, different order) to create the puzzle. Do NOT substitute or change any letter. Before finalizing, verify that the scrambled letters you show the player are EXACTLY the same letters (same count of each letter) as your answer word - no more, no less, no different letters.
-- Simple logic riddle with 2-3 short clues about people/objects (e.g. "there are 3 boxes, only one has treasure, the middle box is empty, the treasure is not on the left - which box has it?")
+- CRITICAL FOR ANAGRAMS: After picking your answer word, write out its exact letters, then scramble ONLY those exact letters (same letters, different order) to create the puzzle. Do NOT substitute or change any letter. Before finalizing, verify that the scrambled letters you show the player are EXACTLY the same letters (same count of each letter) as your answer word - no more, no less, no different letters.
+- Simple logic riddle with 2-3 short clues about people/objects (e.g. deciding which of several items/people has a certain property based on given clues). Vary the scenario each time (different objects, different number of items, different clue structure) - do NOT default to a "3 boxes, answer is always the remaining one" pattern, as this becomes predictable if reused. Mix up which position/option ends up being correct, and vary the story context (could be about people, animals, doors, colors, etc. - not always boxes).
 - "Spot the pattern" with a slightly less obvious rule (e.g. skip-counting, or a simple multiply-then-add sequence)
 
 DIFFICULTY RULE: Puzzles may require up to 2 connected steps of reasoning, but never more than 2. If a puzzle needs 3+ steps or feels like it requires a calculator/paper, simplify it.
+
+VARIETY IS CRITICAL: Do not default to commonly-known puzzle patterns you may have seen before. For pattern puzzles specifically, avoid simple "multiply by increasing amounts" sequences - they are overused and predictable. Invent a fresh, less predictable pattern each time (e.g. alternating add/subtract, doubling, or a pattern tied to the "${theme}" story). For all puzzle types, actively avoid reusing common textbook examples - be creative and generate something that feels fresh and different from typical puzzle-book content. Also avoid repeating the same puzzle concept, riddle, or number sequence you may have generated in a previous session - aim for genuine novelty each time.
 
 HOW TO MAKE IT FEEL FUN:
 - Write vivid, dramatic narration (1-2 sentences) using the "${theme}" setting, with sensory details
 - Add light humor - funny character names, silly moments, or a playful twist
 - Make it feel like an exciting mini-adventure, not homework
 
-CRITICAL - VERIFY YOUR OWN ANSWER: Solve each puzzle yourself step by step before finalizing it. Confirm there is exactly ONE possible correct answer with no ambiguity - re-check any math or logic puzzle twice.
+CRITICAL - VERIFY YOUR OWN ANSWER: For EVERY puzzle, especially number sequences and pattern puzzles, you must manually apply your stated rule step-by-step, writing out each calculation, to confirm the final answer is correct BEFORE including it in the puzzle. If the puzzle is a sequence with an alternating or multi-step rule, apply the rule the EXACT SAME number of times in the EXACT SAME order you described in the hint - do not skip steps, repeat a step twice in a row, or apply steps out of order. Double-check that your stated "answer" is the literal result of applying your stated rule to the sequence - not an approximation or a different pattern.
 
 CRITICAL - USE ONLY COMMON WORDS: Every word-based answer must be something a 12-year-old uses in everyday conversation.
 
@@ -146,7 +148,7 @@ Respond ONLY with valid JSON array, no markdown, no extra text. Format:
     const completion = await this.groq.chat.completions.create({
       model: 'openai/gpt-oss-120b',
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7, // Slightly lower than before - favors reliability/correctness over creativity
+      temperature: 0.9, // Higher than before - encourages more varied puzzles across different game sessions
     });
 
     const rawResponse = completion.choices[0].message.content;
