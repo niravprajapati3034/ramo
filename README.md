@@ -20,6 +20,19 @@ Built as a full-stack portfolio project to demonstrate real-time systems, AI int
 
 ---
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="screenshots/home.png" width="45%" />
+  <img src="screenshots/waiting-room.png" width="45%" />
+</p>
+<p align="center">
+  <img src="screenshots/game.png" width="45%" />
+  <img src="screenshots/case-closed.png" width="45%" />
+</p>
+
+---
+
 ## 🛠️ Tech Stack
 
 **Frontend**
