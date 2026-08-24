@@ -22,14 +22,16 @@ Built as a full-stack portfolio project to demonstrate real-time systems, AI int
 
 ## 📸 Screenshots
 
-<p align="center">
-  <img src="screenshots/home.png" width="45%" />
-  <img src="screenshots/waiting-room.png" width="45%" />
-</p>
-<p align="center">
-  <img src="screenshots/game.png" width="45%" />
-  <img src="screenshots/case-closed.png" width="45%" />
-</p>
+<table>
+  <tr>
+    <td><img src="screenshots/home.png" width="400"/></td>
+    <td><img src="screenshots/waiting-room.png" width="400"/></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/game.png" width="400"/></td>
+    <td><img src="screenshots/case-closed.png" width="400"/></td>
+  </tr>
+</table>
 
 ---
 
